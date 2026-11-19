@@ -27,7 +27,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git zip unzip autoconf automake libtool pkg-config \
-            zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev libssl-dev
+            zlib1g-dev libncurses-dev libtinfo6 cmake libffi-dev libssl-dev \
+            libltdl-dev autoconf-archive gettext
 
       - name: Buildozer
         run: pip install --upgrade pip && pip install buildozer "Cython==0.29.37" setuptools
@@ -48,7 +49,9 @@ jobs:
       - name: Показать ошибку (хвост лога в аннотации)
         if: failure()
         run: |
-          grep -v '^\s*$' build.log | tail -n 60 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' > tail.txt
+          sed 's/\x1b\[[0-9;]*m//g' build.log | grep -v '^\s*$' \
+            | grep -vE '^#     [A-Za-z0-9_]+ = ' | grep -v 'is obsolete' \
+            | tail -n 60 | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"}{print}' > tail.txt
           echo "::error title=buildozer::$(cat tail.txt)"
 
       - name: Переименовать
